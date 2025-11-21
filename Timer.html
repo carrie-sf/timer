@@ -1,0 +1,362 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♡Timer♡</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #ffcee7, #c1eefd);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #ff66b2;
+            margin-bottom: 20px;
+            font-size: 2.2rem;
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            color: #ff66b2;
+            margin: 20px 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: #ff66b2;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: #ff3385;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .time-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .time-input input {
+            width: 70px;
+            padding: 10px;
+            border: 2px solid #ffccdd;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ff66b2;
+        }
+
+        .time-input label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #ff66b2;
+            font-weight: bold;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            text-align: center;
+            z-index: 1000;
+            max-width: 300px;
+            transition: transform 0.4s ease;
+        }
+
+        .notification.active {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .notification h2 {
+            color: #ff66b2;
+            margin-bottom: 15px;
+        }
+
+        .notification p {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .cute-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .timer-icon {
+            font-size: 5rem;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>♡Timer♡</h1>
+        <div class="image-container">
+            <img src="https://cdn-icons-png.freepik.com/512/7992/7992501.png" alt="Timer Icon" class="timer-icon">
+        </div>
+        
+        <style>
+            .image-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin: 20px 0;
+            }
+            
+            .timer-icon {
+                width: 80px;
+                height: 80px;
+            }
+        </style>
+
+        <div class="timer-display" id="timerDisplay">00:00:00</div>
+        
+        <div class="time-input">
+            <label>
+                Hours
+                <input type="number" id="hours" min="0" max="23" value="0">
+            </label>
+            <label>
+                Minutes
+                <input type="number" id="minutes" min="0" max="59" value="0">
+            </label>
+            <label>
+                Seconds
+                <input type="number" id="seconds" min="0" max="59" value="0">
+            </label>
+        </div>
+        
+        <div class="timer-controls">
+            <button id="startBtn">Start</button>
+            <button id="pauseBtn" disabled>Pause</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    
+    <div class="notification" id="notification">
+        <div class="cute-icon">🎉</div>
+        <h2>Time's Up!</h2>
+        <p>Your timer has finished!</p>
+        <button id="closeNotification">OK</button>
+    </div>
+
+    <script>
+        // DOM Elements
+        const timerDisplay = document.getElementById('timerDisplay');
+        const hoursInput = document.getElementById('hours');
+        const minutesInput = document.getElementById('minutes');
+        const secondsInput = document.getElementById('seconds');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const notification = document.getElementById('notification');
+        const overlay = document.getElementById('overlay');
+        const closeNotification = document.getElementById('closeNotification');
+
+        // Timer variables
+        let timer;
+        let isRunning = false;
+        let totalSeconds = 0;
+        let remainingSeconds = 0;
+
+        // Initialize timer display
+        updateTimerDisplay();
+
+        // Event Listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        closeNotification.addEventListener('click', closeNotificationPopup);
+        
+        hoursInput.addEventListener('change', validateInputs);
+        minutesInput.addEventListener('change', validateInputs);
+        secondsInput.addEventListener('change', validateInputs);
+
+        // Timer functions
+        function startTimer() {
+            if (!isRunning) {
+                if (remainingSeconds === 0) {
+                    const hours = parseInt(hoursInput.value) || 0;
+                    const minutes = parseInt(minutesInput.value) || 0;
+                    const seconds = parseInt(secondsInput.value) || 0;
+                    totalSeconds = hours * 3600 + minutes * 60 + seconds;
+                    remainingSeconds = totalSeconds;
+                }
+                if (remainingSeconds > 0) {
+                    isRunning = true;
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = false;
+                    resetBtn.disabled = false;
+                    hoursInput.diasbled = true;
+                    minutesInput.disabled = true;
+                    secondsInput.disabled = true;
+                    
+                    timer = setInterval(updateTimer, 1000);
+                }
+            }
+        }
+
+        function pauseTimer() {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(timer);
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+            }
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timer);
+            remainingSeconds = 0;
+            updateTimerDisplay();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+
+            hoursInput.value = 0;
+            minutesInput.value = 0;
+            secondsInput.value = 0;
+            const hours = 0;
+            const minutes = 0;
+            const seconds = 0;
+            hoursInput.disabled = false;
+            minutesInput.disabled = false;
+            secondsInput.disabled = false;
+        }
+
+        function updateTimer() {
+
+            if (remainingSeconds > 0) {
+                remainingSeconds--;
+                updateTimerDisplay();
+            } else {
+                clearInterval(timer);
+                isRunning = false;
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                hoursInput.disabled = false;
+                minutesInput.disabled = false;
+                secondsInput.disabled = false;
+                showNotification();
+            }
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(remainingSeconds / 3600);
+            const minutes = Math.floor((remainingSeconds % 3600) / 60);
+            const seconds = remainingSeconds % 60;
+            timerDisplay.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function showNotification() {
+            notification.classList.add('active');
+            overlay.classList.add('active');
+            
+            // Play notification sound if available
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA');
+                audio.play();
+            } catch (e) {
+                // Sound not supported or failed to play
+            }
+        }
+
+        function closeNotificationPopup() {
+            notification.classList.remove('active');
+            overlay.classList.remove('active');
+        }
+
+        function validateInputs() {
+            let hours = parseInt(hoursInput.value) || 0;
+            let minutes = parseInt(minutesInput.value) || 0;
+            let seconds = parseInt(secondsInput.value) || 0;
+
+            if (hours < 0) hoursInput.value = 0;
+            if (hours > 23) hoursInput.value = 23;
+            if (minutes < 0) minutesInput.value = 0;
+            if (minutes > 59) minutesInput.value = 59;
+            if (seconds < 0) secondsInput.value = 0;
+            if (seconds > 59) secondsInput.value = 59;
+            
+            // Update timer display with new values
+            if (!isRunning) {
+                remainingSeconds = hours * 3600 + minutes * 60 + seconds;
+                updateTimerDisplay();
+            }
+        }
+    </script>
+</body>
+</html>
